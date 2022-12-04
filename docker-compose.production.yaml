@@ -1,0 +1,58 @@
+version: "3"
+services:
+  mongo:
+    container_name: users
+    image: mongo
+    restart: always
+    ports:
+      - "27017"
+    networks:
+      - default
+    volumes:
+      - data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=mern_docker_starter
+      - MONGO_INITDB_USER=local_user
+      - MONGO_INITDB_PASSWORD=Password123
+
+  backend:
+    container_name: users-backend
+    build:
+      context: ./backend
+      dockerfile: production/Dockerfile
+    networks:
+      - default
+      - frontend
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./backend/.env.production
+    tty: true
+    stdin_open: true
+    depends_on:
+      - mongo
+    ports:
+      - "4000"
+
+  frontend:
+    container_name: users-frontend
+    build:
+      context: ./frontend
+      dockerfile: production/Dockerfile
+    networks:
+      - frontend
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    tty: true
+    stdin_open: true
+    ports:
+      - "80:80"
+      - "443:443"
+
+networks:
+  default:
+    name: backend-users
+  frontend:
+    name: frontend-users
